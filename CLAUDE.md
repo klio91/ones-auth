@@ -36,6 +36,15 @@ ones-auth/
 
 ## 규칙
 
+### 문서 동기화
+
+- 코드를 수정할 때 `docs/` 내 md 파일과 `README.md`에 연관된 내용이 있는지 반드시 확인한다.
+- 업데이트가 필요한 문서는 같은 커밋에 함께 수정한다. outdated 상태를 허용하지 않는다.
+- 엔드포인트 추가/변경 시: `docs/architecture.md` 엔드포인트 표 + `README.md` API 목록
+- DB 스키마 변경 시: `docs/architecture.md` DB 스키마 섹션
+- 환경변수 추가/변경 시: `CLAUDE.md` 환경변수 표 + `.env.example`
+- 새 문서 추가 시: 상단에 `Status`와 `Created` 날짜를 반드시 적는다.
+
 ### Changelog
 
 - git commit을 할 때 `docs/CHANGELOG.md`를 같은 커밋에 반드시 업데이트한다.
