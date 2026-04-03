@@ -18,7 +18,11 @@ ones-auth/
 │       ├── auth/               ← OIDC 인증 흐름
 │       └── keycloak/           ← Keycloak API wrapper
 ├── migrations/                 ← Alembic
+├── docs/
+│   ├── architecture.md         ← 아키텍처 설계
+│   └── CHANGELOG.md            ← 변경 이력
 ├── tests/
+├── docker-compose.yaml         ← PostgreSQL 로컬 환경
 ├── pyproject.toml
 └── CLAUDE.md
 ```
@@ -31,6 +35,18 @@ ones-auth/
 - PostgreSQL (`auth` 스키마)
 
 ## 규칙
+
+### Changelog
+
+- git commit을 할 때 `docs/CHANGELOG.md`를 같은 커밋에 반드시 업데이트한다.
+- [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 포맷을 따른다.
+- 날짜별 섹션(`## [YYYY-MM-DD]`) 아래에 카테고리별로 분류한다:
+  - `Added` — 새로 추가된 기능/파일
+  - `Changed` — 기존 기능/설정 변경
+  - `Fixed` — 버그 수정
+  - `Removed` — 삭제된 기능/파일
+- 아직 릴리즈되지 않은 변경은 `## [Unreleased]` 섹션에 적는다.
+- 같은 날짜에 여러 커밋이 있으면 하나의 날짜 섹션에 모은다.
 
 ### 레이어 분리
 
