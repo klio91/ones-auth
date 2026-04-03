@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    model_config = {"env_prefix": "ONES_AUTH_"}
+    model_config = {"env_prefix": "ONES_AUTH_", "env_file": ".env", "env_file_encoding": "utf-8"}
 
     # Database
     db_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/ones"
