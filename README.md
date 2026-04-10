@@ -54,6 +54,19 @@ uv run pytest tests/ -x -q
 |--------|------|------|
 | GET | `/health` | 서버 상태 확인 |
 
+## 마이그레이션
+
+```bash
+# 최신 스키마 적용
+uv run alembic upgrade head
+
+# 새 마이그레이션 생성 (모델 변경 후)
+uv run alembic revision --autogenerate -m "변경 설명"
+
+# 현재 버전 확인
+uv run alembic current
+```
+
 ## 상세 문서
 
 - [CLAUDE.md](CLAUDE.md) — 프로젝트 규칙, 아키텍처, 환경변수

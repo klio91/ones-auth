@@ -111,7 +111,6 @@ controller/ → service/ → repository/ (Litestar SQLAlchemyAsyncRepository)
 | POST | `/auth/logout` | OFF | - | 로그아웃 + 쿠키 삭제 |
 | GET | `/auth/me` | ON | 아무 Role | 현재 유저 정보 |
 | GET | `/auth/users` | ON | `ones-admin` | 사용자 목록 |
-| PATCH | `/auth/users/{id}/approve` | ON | `ones-admin` | 승인 (waiting → active) |
 | PATCH | `/auth/users/{id}/deactivate` | ON | `ones-admin` | 비활성화 |
 | POST | `/auth/api-clients` | ON | `ones-admin` | API 클라이언트 생성 |
 | GET | `/auth/api-clients` | ON | `ones-admin` | API 클라이언트 목록 |
