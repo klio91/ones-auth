@@ -35,13 +35,7 @@ class AuthController(Controller):
             raise InvalidRequestError("Missing authorization code")
 
         auth_service = AuthService.with_db(keycloak, db_session)
-        tokens = await keycloak.exchange_code(code)
-        claims = auth_service.decode_access_token(tokens.access_token)
-        user_service = UserService(session=db_session, keycloak=keycloak)
-        user, is_new = await user_service.get_or_create(
-            email=claims.email,
-            keycloak_sub=claims.sub,
-        )
+        tokens, user, is_new = await auth_service.exchange_and_upsert(code)
         await db_session.commit()
 
         response: Response = Redirect("/")
