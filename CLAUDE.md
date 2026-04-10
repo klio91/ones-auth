@@ -83,9 +83,9 @@ controller/ → service/ → repository/ (Litestar SQLAlchemyAsyncRepository)
 
 ### 인증
 
-- Kong이 JWT 검증 후 `X-User-ID`, `X-User-Email`, `X-User-Roles` 헤더를 주입.
-- ones-auth는 이 헤더를 신뢰한다 (Kong 뒤에서만 동작).
-- Admin API (`/auth/users/*`, `/auth/api-clients/*`)는 `X-User-Roles`에 `ones-admin` 필수.
+- Kong이 JWT 서명을 검증한 뒤 요청을 ones-auth로 프록시한다.
+- ones-auth는 `ones_access` 쿠키에서 JWT claims를 직접 디코딩하여 사용자를 식별한다 (서명 검증은 Kong에 위임).
+- Admin API (`/auth/users/*`, `/auth/api-clients/*`)는 JWT claims의 role에 `ones-admin` 필수.
 
 ### DB
 

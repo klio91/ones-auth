@@ -116,11 +116,14 @@ class AuthController(Controller):
         self,
         db_session: AsyncSession,
         keycloak: KeycloakClient,
-        x_user_email: str = Parameter(header="X-User-Email", default=""),
+        access_cookie: str = Parameter(cookie=settings.cookie_access_name, default=""),
     ) -> UserResponse:
-        if not x_user_email:
-            raise InvalidRequestError("Missing X-User-Email header")
+        if not access_cookie:
+            raise InvalidTokenError("Missing access token")
+
+        auth_service = AuthService(keycloak)
+        claims = auth_service.decode_access_token(access_cookie)
 
         user_service = UserService(session=db_session, keycloak=keycloak)
-        user = await user_service.get_by_email(x_user_email)
+        user = await user_service.get_by_email(claims.email)
         return UserResponse(data=UserRead.model_validate(user, from_attributes=True))
