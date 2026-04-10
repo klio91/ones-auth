@@ -30,10 +30,22 @@ class AuthService:
         await self._keycloak.logout(refresh_token)
 
     def decode_access_token(self, token: str) -> TokenClaims:
+        from loguru import logger
+
         try:
-            payload = jwt.decode(token, options={"verify_signature": False})
-        except JWTError as e:
-            raise InvalidTokenError(f"Failed to decode token: {e}")
+            payload = jwt.decode(
+                token,
+                options={"verify_signature": False, "verify_aud": False},
+            )
+        except JWTError:
+            raise InvalidTokenError("Invalid token")
+
+        expected_iss = settings.keycloak_base
+        if payload.get("iss") != expected_iss:
+            logger.debug("JWT issuer mismatch: got={}, expected={}", payload.get("iss"), expected_iss)
+            raise InvalidTokenError("Invalid token")
+
+        logger.debug("JWT claims decoded: sub={}, email={}", payload.get("sub", ""), payload.get("email", ""))
 
         roles: list[str] = []
         resource_access = payload.get("resource_access", {})
@@ -46,6 +58,24 @@ class AuthService:
             preferred_username=payload.get("preferred_username"),
             roles=roles,
         )
+
+    async def exchange_and_upsert(self, code: str) -> tuple[TokenResponse, object, bool]:
+        """code → token 교환 + 사용자 upsert. with_db()로 생성된 인스턴스 필요."""
+        from loguru import logger
+        from app.domain.user.service import UserService
+
+        assert self._session is not None, "exchange_and_upsert requires session — use AuthService.with_db()"
+
+        tokens = await self._keycloak.exchange_code(code)
+        claims = self.decode_access_token(tokens.access_token)
+        logger.debug("callback claims: sub={}, email={}", claims.sub, claims.email)
+
+        user_service = UserService(session=self._session, keycloak=self._keycloak)
+        user, is_new = await user_service.get_or_create(
+            email=claims.email,
+            keycloak_sub=claims.sub,
+        )
+        return tokens, user, is_new
 
     def set_token_cookies(self, response: Response, tokens: TokenResponse) -> Response:
         response.set_cookie(
