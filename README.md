@@ -37,7 +37,6 @@ uv run pytest tests/ -x -q
 | Method | Path | 설명 |
 |--------|------|------|
 | GET | `/auth/users` | 사용자 목록 |
-| PATCH | `/auth/users/{id}/approve` | 사용자 승인 (waiting → active) |
 | PATCH | `/auth/users/{id}/deactivate` | 사용자 비활성화 |
 
 ### API 클라이언트 관리 — Admin 전용
@@ -70,3 +69,6 @@ uv run alembic current
 ## 상세 문서
 
 - [CLAUDE.md](CLAUDE.md) — 프로젝트 규칙, 아키텍처, 환경변수
+- [docs/architecture.md](docs/architecture.md) — 시스템 아키텍처, 엔드포인트
+- [docs/db.md](docs/db.md) — DB 스키마
+- [docs/security.md](docs/security.md) — 보안 설계 (PKCE, CSRF, JWT, 쿠키)
