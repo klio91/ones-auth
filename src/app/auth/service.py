@@ -5,6 +5,7 @@ from litestar.response import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.schema import TokenClaims
+from app.domain.user.model import User
 from app.error import InvalidTokenError
 from app.keycloak.client import KeycloakClient
 from app.keycloak.schema import TokenResponse
@@ -59,7 +60,7 @@ class AuthService:
             roles=roles,
         )
 
-    async def exchange_and_upsert(self, code: str) -> tuple[TokenResponse, object, bool]:
+    async def exchange_and_upsert(self, code: str) -> tuple[TokenResponse, User, bool]:
         """code → token 교환 + 사용자 upsert. with_db()로 생성된 인스턴스 필요."""
         from loguru import logger
         from app.domain.user.service import UserService
