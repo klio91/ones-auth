@@ -21,7 +21,7 @@ def upgrade() -> None:
         sa.Column("id", sa.String(), nullable=False),
         sa.Column("email", sa.String(), nullable=False),
         sa.Column("keycloak_sub", sa.String(), nullable=True),
-        sa.Column("status", sa.String(), nullable=False, server_default=sa.text("'waiting'")),
+        sa.Column("status", sa.String(), nullable=False, server_default=sa.text("'active'")),
         sa.Column(
             "joined_at",
             sa.TIMESTAMP(timezone=True),

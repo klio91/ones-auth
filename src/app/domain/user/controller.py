@@ -27,21 +27,6 @@ class UserController(Controller):
             total=total,
         )
 
-    @patch("/{user_id:str}/approve")
-    async def approve_user(
-        self,
-        db_session: AsyncSession,
-        keycloak: KeycloakClient,
-        user_id: str,
-        x_user_id: str = Parameter(header="X-User-ID", default=""),
-        x_user_roles: str = Parameter(header="X-User-Roles", default=""),
-    ) -> UserResponse:
-        _require_admin(x_user_roles)
-        service = UserService(session=db_session, keycloak=keycloak)
-        user = await service.approve(user_id, approved_by=x_user_id)
-        await db_session.commit()
-        return UserResponse(data=UserRead.model_validate(user, from_attributes=True))
-
     @patch("/{user_id:str}/deactivate")
     async def deactivate_user(
         self,
