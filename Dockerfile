@@ -18,6 +18,6 @@ COPY migrations/ ./migrations/
 ENV PYTHONPATH=/app/src
 
 # Litestar 서버 포트 (settings.py 기본값: 8080)
-EXPOSE 8080
+EXPOSE 9000
 
 CMD ["uv", "run", "python", "-m", "app.main"]

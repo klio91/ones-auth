@@ -32,7 +32,7 @@ services:
       ONES_AUTH_KEYCLOAK_IDP_HINT: ${KEYCLOAK_IDP_HINT:-}
       ONES_AUTH_FRONTEND_URL: ${ONES_AUTH_FRONTEND_URL:-http://localhost:3000}
     ports:
-      - "8000:8080"
+      - "9000:9000"
     depends_on:
       postgres:
         condition: service_healthy

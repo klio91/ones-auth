@@ -35,7 +35,7 @@ class Settings(BaseSettings):
 
     # Server
     host: str = "0.0.0.0"
-    port: int = 8080
+    port: int = 9000
 
     @property
     def keycloak_base(self) -> str:
