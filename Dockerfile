@@ -11,8 +11,9 @@ RUN pip install uv
 COPY pyproject.toml uv.lock* ./
 RUN uv sync --frozen --no-dev
 
-# 소스 코드 복사
+# 소스 코드 + Alembic 마이그레이션 복사
 COPY src/ ./src/
+COPY migrations/ ./migrations/
 
 ENV PYTHONPATH=/app/src
 
