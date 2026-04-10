@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5432:5432"
+      - "35432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
@@ -16,6 +16,26 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+
+  ones-auth:
+    build: .
+    container_name: ones-auth
+    environment:
+      ONES_AUTH_DB_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/ones
+      ONES_AUTH_KEYCLOAK_URL: ${ONES_AUTH_KEYCLOAK_URL:-http://host.docker.internal:8080}
+      ONES_AUTH_KEYCLOAK_REALM: ${ONES_AUTH_KEYCLOAK_REALM:-ones}
+      ONES_AUTH_KEYCLOAK_CLIENT_ID: ${ONES_AUTH_KEYCLOAK_CLIENT_ID:-ones}
+      ONES_AUTH_KEYCLOAK_CLIENT_SECRET: ${ONES_AUTH_KEYCLOAK_CLIENT_SECRET:-dummy-client-secret}
+      ONES_AUTH_KEYCLOAK_REDIRECT_URI: ${ONES_AUTH_KEYCLOAK_REDIRECT_URI:-http://localhost:8000/auth/callback}
+      ONES_AUTH_KEYCLOAK_ADMIN_CLIENT_ID: ${ONES_AUTH_KEYCLOAK_ADMIN_CLIENT_ID:-ones-auth-admin}
+      ONES_AUTH_KEYCLOAK_ADMIN_CLIENT_SECRET: ${ONES_AUTH_KEYCLOAK_ADMIN_CLIENT_SECRET:-dummy-admin-secret}
+      ONES_AUTH_KEYCLOAK_IDP_HINT: ${KEYCLOAK_IDP_HINT:-}
+      ONES_AUTH_FRONTEND_URL: ${ONES_AUTH_FRONTEND_URL:-http://localhost:3000}
+    ports:
+      - "8000:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 volumes:
   pgdata:
