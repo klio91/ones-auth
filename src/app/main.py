@@ -11,7 +11,10 @@ from app.domain.api_client.controller import ApiClientController
 from app.domain.user.controller import UserController
 from app.error import AppError, app_error_handler
 from app.keycloak.client import KeycloakClient
+from app.logging import setup_logging
 from app.settings import settings
+
+setup_logging()
 
 _keycloak_client = KeycloakClient()
 
