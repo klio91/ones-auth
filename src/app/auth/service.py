@@ -21,8 +21,8 @@ class AuthService:
     def with_db(cls, keycloak: KeycloakClient, session: AsyncSession) -> AuthService:
         return cls(keycloak=keycloak, session=session)
 
-    def get_login_url(self, state: str) -> str:
-        return self._keycloak.get_authorization_url(state=state)
+    def get_login_url(self, state: str, code_challenge: str) -> str:
+        return self._keycloak.get_authorization_url(state=state, code_challenge=code_challenge)
 
     async def handle_refresh(self, refresh_token: str) -> TokenResponse:
         return await self._keycloak.refresh_token(refresh_token)
@@ -60,14 +60,14 @@ class AuthService:
             roles=roles,
         )
 
-    async def exchange_and_upsert(self, code: str) -> tuple[TokenResponse, User, bool]:
-        """code → token 교환 + 사용자 upsert. with_db()로 생성된 인스턴스 필요."""
+    async def exchange_and_upsert(self, code: str, code_verifier: str) -> tuple[TokenResponse, User, bool]:
+        """code + code_verifier → token 교환 + 사용자 upsert. with_db()로 생성된 인스턴스 필요."""
         from loguru import logger
         from app.domain.user.service import UserService
 
         assert self._session is not None, "exchange_and_upsert requires session — use AuthService.with_db()"
 
-        tokens = await self._keycloak.exchange_code(code)
+        tokens = await self._keycloak.exchange_code(code, code_verifier)
         claims = self.decode_access_token(tokens.access_token)
         logger.debug("callback claims: sub={}, email={}", claims.sub, claims.email)
 

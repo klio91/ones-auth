@@ -1,3 +1,5 @@
+import base64
+import hashlib
 import secrets
 
 from litestar import Controller, Response, get, post
@@ -14,15 +16,40 @@ from app.keycloak.client import KeycloakClient
 from app.settings import settings
 
 
+def _pkce_challenge(verifier: str) -> str:
+    """RFC 7636 S256: BASE64URL(SHA256(verifier))."""
+    digest = hashlib.sha256(verifier.encode()).digest()
+    return base64.urlsafe_b64encode(digest).rstrip(b"=").decode()
+
+
+def _set_auth_cookie(response: Response, name: str, value: str) -> None:
+    response.set_cookie(
+        key=name,
+        value=value,
+        httponly=True,
+        secure=settings.cookie_secure,
+        samesite=settings.cookie_samesite,
+        domain=settings.cookie_domain,
+        path="/auth",
+    )
+
+
 class AuthController(Controller):
     path = "/auth"
 
     @get("/login")
-    async def login(self, keycloak: KeycloakClient) -> Redirect:
+    async def login(self, keycloak: KeycloakClient) -> Response:
         state = secrets.token_urlsafe(32)
+        code_verifier = secrets.token_urlsafe(32)
+        code_challenge = _pkce_challenge(code_verifier)
+
         auth_service = AuthService(keycloak)
-        url = auth_service.get_login_url(state=state)
-        return Redirect(url)
+        url = auth_service.get_login_url(state=state, code_challenge=code_challenge)
+
+        response: Response = Redirect(url)
+        _set_auth_cookie(response, settings.cookie_state_name, state)
+        _set_auth_cookie(response, settings.cookie_pkce_name, code_verifier)
+        return response
 
     @get("/callback")
     async def callback(
@@ -30,16 +57,26 @@ class AuthController(Controller):
         db_session: AsyncSession,
         keycloak: KeycloakClient,
         code: str = Parameter(query="code", default=""),
+        state: str = Parameter(query="state", default=""),
+        state_cookie: str = Parameter(cookie=settings.cookie_state_name, default=""),
+        pkce_cookie: str = Parameter(cookie=settings.cookie_pkce_name, default=""),
     ) -> Response:
         if not code:
             raise InvalidRequestError("Missing authorization code")
+        if not state or not state_cookie or state != state_cookie:
+            raise InvalidRequestError("State mismatch")
+        if not pkce_cookie:
+            raise InvalidRequestError("Missing PKCE verifier")
 
         auth_service = AuthService.with_db(keycloak, db_session)
-        tokens, user, is_new = await auth_service.exchange_and_upsert(code)
+        tokens, user, is_new = await auth_service.exchange_and_upsert(code, pkce_cookie)
         await db_session.commit()
 
-        response: Response = Redirect("/")
-        return auth_service.set_token_cookies(response, tokens)
+        response: Response = Redirect(settings.frontend_url)
+        auth_service.set_token_cookies(response, tokens)
+        response.delete_cookie(key=settings.cookie_state_name, path="/auth")
+        response.delete_cookie(key=settings.cookie_pkce_name, path="/auth")
+        return response
 
     @post("/refresh")
     async def refresh(
