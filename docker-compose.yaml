@@ -18,14 +18,17 @@ services:
       retries: 5
 
   ones-auth:
-    build: .
+    build:
+      context: .
+    image: productivity-ai-docker-local.bart.sec.samsung.net/ones/ones-auth:latest
     container_name: ones-auth
     environment:
-      ONES_AUTH_DB_HOST: postgres
-      ONES_AUTH_DB_PORT: 5432
-      ONES_AUTH_DB_USER: postgres
-      ONES_AUTH_DB_PASSWORD: postgres
-      ONES_AUTH_DB_NAME: ones
+      ONES_AUTH_DB_HOST: ${ONES_AUTH_DB_HOST:-postgres}
+      ONES_AUTH_DB_PORT: ${ONES_AUTH_DB_PORT:-5432}
+      ONES_AUTH_DB_USER: ${ONES_AUTH_DB_USER:-postgres}
+      ONES_AUTH_DB_PASSWORD: ${ONES_AUTH_DB_PASSWORD:-postgres}
+      ONES_AUTH_DB_NAME: ${ONES_AUTH_DB_NAME:-ones}
+      ONES_AUTH_DB_SCHEMA: ${ONES_AUTH_DB_SCHEMA:-auth}
       ONES_AUTH_KEYCLOAK_URL: ${ONES_AUTH_KEYCLOAK_URL:-http://host.docker.internal:8080}
       ONES_AUTH_KEYCLOAK_REALM: ${ONES_AUTH_KEYCLOAK_REALM:-ones}
       ONES_AUTH_KEYCLOAK_CLIENT_ID: ${ONES_AUTH_KEYCLOAK_CLIENT_ID:-ones}
@@ -33,10 +36,11 @@ services:
       ONES_AUTH_KEYCLOAK_REDIRECT_URI: ${ONES_AUTH_KEYCLOAK_REDIRECT_URI:-http://localhost:8000/auth/callback}
       ONES_AUTH_KEYCLOAK_ADMIN_CLIENT_ID: ${ONES_AUTH_KEYCLOAK_ADMIN_CLIENT_ID:-ones-auth-admin}
       ONES_AUTH_KEYCLOAK_ADMIN_CLIENT_SECRET: ${ONES_AUTH_KEYCLOAK_ADMIN_CLIENT_SECRET:-dummy-admin-secret}
-      ONES_AUTH_KEYCLOAK_IDP_HINT: ${KEYCLOAK_IDP_HINT:-}
+      ONES_AUTH_KEYCLOAK_IDP_HINT: ${KEYCLOAK_IDP_HINT:-adsso}
       ONES_AUTH_FRONTEND_URL: ${ONES_AUTH_FRONTEND_URL:-http://localhost:3000}
+      ONES_AUTH_PORT: ${ONES_AUTH_PORT:-9000}
     ports:
-      - "9000:9000"
+      - "${ONES_AUTH_PORT:-9000}:${ONES_AUTH_PORT:-9000}"
     depends_on:
       postgres:
         condition: service_healthy
