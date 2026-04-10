@@ -99,7 +99,11 @@ prefix: `ONES_AUTH_`
 
 | 변수 | 설명 | 기본값 |
 |------|------|--------|
-| `DB_URL` | PostgreSQL 연결 문자열 | `postgresql+asyncpg://postgres:postgres@localhost:5432/ones` |
+| `DB_HOST` | PostgreSQL 호스트 | `localhost` |
+| `DB_PORT` | PostgreSQL 포트 | `5432` |
+| `DB_USER` | PostgreSQL 사용자 | `postgres` |
+| `DB_PASSWORD` | PostgreSQL 비밀번호 | `postgres` |
+| `DB_NAME` | PostgreSQL 데이터베이스명 | `ones` |
 | `KEYCLOAK_URL` | Keycloak 서버 URL | `http://localhost:8080` |
 | `KEYCLOAK_REALM` | Realm 이름 | `ones` |
 | `KEYCLOAK_CLIENT_ID` | OIDC Client ID | `ones` |

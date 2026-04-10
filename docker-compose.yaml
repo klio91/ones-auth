@@ -21,7 +21,11 @@ services:
     build: .
     container_name: ones-auth
     environment:
-      ONES_AUTH_DB_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/ones
+      ONES_AUTH_DB_HOST: postgres
+      ONES_AUTH_DB_PORT: 5432
+      ONES_AUTH_DB_USER: postgres
+      ONES_AUTH_DB_PASSWORD: postgres
+      ONES_AUTH_DB_NAME: ones
       ONES_AUTH_KEYCLOAK_URL: ${ONES_AUTH_KEYCLOAK_URL:-http://host.docker.internal:8080}
       ONES_AUTH_KEYCLOAK_REALM: ${ONES_AUTH_KEYCLOAK_REALM:-ones}
       ONES_AUTH_KEYCLOAK_CLIENT_ID: ${ONES_AUTH_KEYCLOAK_CLIENT_ID:-ones}

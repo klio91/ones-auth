@@ -5,9 +5,17 @@ class Settings(BaseSettings):
     model_config = {"env_prefix": "ONES_AUTH_", "env_file": ".env", "env_file_encoding": "utf-8"}
 
     # Database
-    db_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/ones"
+    db_host: str = "localhost"
+    db_port: int = 5432
+    db_user: str = "postgres"
+    db_password: str = "postgres"
+    db_name: str = "ones"
     db_schema: str = "auth"
     db_echo: bool = False
+
+    @property
+    def db_url(self) -> str:
+        return f"postgresql+asyncpg://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
 
     # Keycloak OIDC
     keycloak_url: str = "http://localhost:8080"
