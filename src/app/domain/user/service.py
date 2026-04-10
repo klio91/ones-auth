@@ -1,11 +1,10 @@
 import uuid
-from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.user.model import User
 from app.domain.user.repository import UserRepository
-from app.error import ForbiddenError, UserAlreadyExistsError, UserNotFoundError
+from app.error import ForbiddenError, UserNotFoundError
 from app.keycloak.client import KeycloakClient
 
 
@@ -15,7 +14,7 @@ class UserService:
         self._keycloak = keycloak
 
     async def get_or_create(self, email: str, keycloak_sub: str) -> tuple[User, bool]:
-        """Get existing user or create as waiting. Returns (user, is_new)."""
+        """Get existing user or create as active. Returns (user, is_new)."""
         existing = await self._repo.get_one_or_none(email=email)
         if existing:
             if existing.keycloak_sub is None:
@@ -27,10 +26,10 @@ class UserService:
             id=str(uuid.uuid4()),
             email=email,
             keycloak_sub=keycloak_sub,
-            status="waiting",
+            status="active",
         )
         created = await self._repo.add(user)
-        await self._keycloak.assign_role(keycloak_sub, "ones-user-waiting")
+        await self._keycloak.assign_role(keycloak_sub, "ones-user")
         return created, True
 
     async def get_by_id(self, user_id: str) -> User:
@@ -52,22 +51,6 @@ class UserService:
             results, total = await self._repo.list_and_count()
         return list(results), total
 
-    async def approve(self, user_id: str, approved_by: str) -> User:
-        user = await self.get_by_id(user_id)
-        if user.status != "waiting":
-            raise ForbiddenError(f"Cannot approve user with status '{user.status}'")
-
-        user.status = "active"
-        user.approved_at = datetime.now(UTC)
-        user.approved_by = approved_by
-        updated = await self._repo.update(user)
-
-        if user.keycloak_sub:
-            await self._keycloak.remove_role(user.keycloak_sub, "ones-user-waiting")
-            await self._keycloak.assign_role(user.keycloak_sub, "ones-user")
-
-        return updated
-
     async def deactivate(self, user_id: str) -> User:
         user = await self.get_by_id(user_id)
         if user.status == "inactive":
@@ -78,6 +61,5 @@ class UserService:
 
         if user.keycloak_sub:
             await self._keycloak.remove_role(user.keycloak_sub, "ones-user")
-            await self._keycloak.remove_role(user.keycloak_sub, "ones-user-waiting")
 
         return updated

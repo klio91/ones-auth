@@ -43,7 +43,7 @@ class AuthController(Controller):
         )
         await db_session.commit()
 
-        redirect_path = "/waiting" if user.status == "waiting" else "/"
+        redirect_path = "/"
         response = Redirect(redirect_path)
         return AuthService.set_token_cookies(response, tokens)
 
