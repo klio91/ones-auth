@@ -69,6 +69,7 @@ class AuthService:
         assert self._session is not None, "exchange_and_upsert requires session — use AuthService.with_db()"
 
         tokens = await self._keycloak.exchange_code(code, code_verifier)
+        logger.debug("Keycloak JWT access_token: {}", tokens.access_token)
         claims = self.decode_access_token(tokens.access_token)
         logger.debug("callback claims: sub={}, email={}", claims.sub, claims.email)
 
