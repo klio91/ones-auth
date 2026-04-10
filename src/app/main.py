@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 from litestar import Litestar, get
 from litestar.di import Provide
+from litestar.openapi import OpenAPIConfig
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.controller import AuthController
@@ -51,6 +52,12 @@ app = Litestar(
         "db_session": Provide(provide_db_session),
         "keycloak": Provide(provide_keycloak),
     },
+    openapi_config=OpenAPIConfig(
+        title="Ones Auth API",
+        version="0.1.0",
+        description="Ones 서비스 인증/인가 API — Keycloak OIDC 연동, 사용자 관리, API 클라이언트 발급",
+        path="/docs",
+    ),
     exception_handlers={AppError: app_error_handler, Exception: unhandled_error_handler},
     lifespan=[lifespan],
 )
