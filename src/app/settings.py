@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     keycloak_client_id: str = "ones"
     keycloak_client_secret: str = "dummy-client-secret"
     keycloak_redirect_uri: str = "http://localhost:8000/auth/callback"
+    keycloak_idp_hint: str | None = "adsso"
 
     # Keycloak Admin API
     keycloak_admin_client_id: str = "ones-auth-admin"
@@ -26,6 +27,11 @@ class Settings(BaseSettings):
     cookie_samesite: str = "Lax"
     cookie_access_name: str = "ones_access"
     cookie_refresh_name: str = "ones_refresh"
+    cookie_pkce_name: str = "ones_pkce"
+    cookie_state_name: str = "ones_state"
+
+    # Frontend
+    frontend_url: str = "http://localhost:3000"
 
     # Server
     host: str = "0.0.0.0"

@@ -1,4 +1,5 @@
 import time
+from urllib.parse import urlencode
 
 import httpx
 
@@ -20,18 +21,21 @@ class KeycloakClient:
 
     # ── OIDC ──
 
-    def get_authorization_url(self, state: str) -> str:
-        params = {
+    def get_authorization_url(self, state: str, code_challenge: str) -> str:
+        params: dict[str, str] = {
             "client_id": settings.keycloak_client_id,
             "redirect_uri": settings.keycloak_redirect_uri,
             "response_type": "code",
             "scope": "openid email profile",
             "state": state,
+            "code_challenge": code_challenge,
+            "code_challenge_method": "S256",
         }
-        query = "&".join(f"{k}={v}" for k, v in params.items())
-        return f"{settings.oidc_auth_url}?{query}"
+        if settings.keycloak_idp_hint:
+            params["kc_idp_hint"] = settings.keycloak_idp_hint
+        return f"{settings.oidc_auth_url}?{urlencode(params)}"
 
-    async def exchange_code(self, code: str) -> TokenResponse:
+    async def exchange_code(self, code: str, code_verifier: str) -> TokenResponse:
         resp = await self._http.post(
             settings.oidc_token_url,
             data={
@@ -40,6 +44,7 @@ class KeycloakClient:
                 "client_secret": settings.keycloak_client_secret,
                 "code": code,
                 "redirect_uri": settings.keycloak_redirect_uri,
+                "code_verifier": code_verifier,
             },
         )
         if resp.status_code != 200:
