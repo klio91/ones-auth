@@ -9,7 +9,7 @@ from app.auth.controller import AuthController
 from app.db import async_session, engine
 from app.domain.api_client.controller import ApiClientController
 from app.domain.user.controller import UserController
-from app.error import AppError, app_error_handler
+from app.error import AppError, app_error_handler, unhandled_error_handler
 from app.keycloak.client import KeycloakClient
 from app.logging import setup_logging
 from app.settings import settings
@@ -51,7 +51,7 @@ app = Litestar(
         "db_session": Provide(provide_db_session),
         "keycloak": Provide(provide_keycloak),
     },
-    exception_handlers={AppError: app_error_handler},
+    exception_handlers={AppError: app_error_handler, Exception: unhandled_error_handler},
     lifespan=[lifespan],
 )
 

@@ -23,8 +23,12 @@ class InterceptHandler(logging.Handler):
 
 def setup_logging() -> None:
     """loguru 설정 + stdlib logging 인터셉트."""
+    import os
+
+    log_level = os.getenv("ONES_AUTH_LOG_LEVEL", "DEBUG").upper()
+
     logger.remove()
-    logger.add(sys.stderr, level="DEBUG", colorize=True)
+    logger.add(sys.stderr, level=log_level, colorize=True)
 
     logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
     for name in ("uvicorn", "uvicorn.error", "uvicorn.access", "sqlalchemy.engine"):

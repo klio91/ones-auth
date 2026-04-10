@@ -59,3 +59,13 @@ def app_error_handler(_: Request, exc: AppError) -> Response:
         content={"error": {"code": exc.code, "message": exc.message}},
         status_code=exc.status_code,
     )
+
+
+def unhandled_error_handler(_: Request, exc: Exception) -> Response:
+    from loguru import logger
+
+    logger.exception("Unhandled exception")
+    return Response(
+        content={"error": {"code": "INTERNAL_ERROR", "message": "Internal server error"}},
+        status_code=500,
+    )
