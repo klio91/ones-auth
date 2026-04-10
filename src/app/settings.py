@@ -26,6 +26,14 @@ class Settings(BaseSettings):
     cookie_samesite: str = "Lax"
     cookie_access_name: str = "ones_access"
     cookie_refresh_name: str = "ones_refresh"
+    cookie_pkce_name: str = "ones_pkce"
+    cookie_state_name: str = "ones_state"
+
+    # Frontend
+    frontend_url: str = "http://localhost:3000"
+
+    # Keycloak IdP Hint
+    keycloak_idp_hint: str | None = None
 
     # Server
     host: str = "0.0.0.0"
