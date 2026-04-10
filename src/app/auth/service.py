@@ -1,7 +1,8 @@
-import secrets
+from __future__ import annotations
 
 from jose import JWTError, jwt
 from litestar.response import Response
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.schema import TokenClaims
 from app.error import InvalidTokenError
@@ -11,15 +12,16 @@ from app.settings import settings
 
 
 class AuthService:
-    def __init__(self, keycloak: KeycloakClient) -> None:
+    def __init__(self, keycloak: KeycloakClient, session: AsyncSession | None = None) -> None:
         self._keycloak = keycloak
+        self._session = session
 
-    def get_login_url(self) -> str:
-        state = secrets.token_urlsafe(32)
+    @classmethod
+    def with_db(cls, keycloak: KeycloakClient, session: AsyncSession) -> AuthService:
+        return cls(keycloak=keycloak, session=session)
+
+    def get_login_url(self, state: str) -> str:
         return self._keycloak.get_authorization_url(state=state)
-
-    async def handle_callback(self, code: str) -> TokenResponse:
-        return await self._keycloak.exchange_code(code)
 
     async def handle_refresh(self, refresh_token: str) -> TokenResponse:
         return await self._keycloak.refresh_token(refresh_token)
@@ -27,8 +29,7 @@ class AuthService:
     async def handle_logout(self, refresh_token: str) -> None:
         await self._keycloak.logout(refresh_token)
 
-    @staticmethod
-    def decode_access_token(token: str) -> TokenClaims:
+    def decode_access_token(self, token: str) -> TokenClaims:
         try:
             payload = jwt.decode(token, options={"verify_signature": False})
         except JWTError as e:
@@ -46,8 +47,7 @@ class AuthService:
             roles=roles,
         )
 
-    @staticmethod
-    def set_token_cookies(response: Response, tokens: TokenResponse) -> Response:
+    def set_token_cookies(self, response: Response, tokens: TokenResponse) -> Response:
         response.set_cookie(
             key=settings.cookie_access_name,
             value=tokens.access_token,
@@ -69,8 +69,7 @@ class AuthService:
             )
         return response
 
-    @staticmethod
-    def clear_token_cookies(response: Response) -> Response:
+    def clear_token_cookies(self, response: Response) -> Response:
         response.delete_cookie(key=settings.cookie_access_name, path="/")
         response.delete_cookie(key=settings.cookie_refresh_name, path="/auth")
         return response

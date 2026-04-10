@@ -1,5 +1,6 @@
+import secrets
+
 from litestar import Controller, Response, get, post
-from litestar.di import Provide
 from litestar.params import Parameter
 from litestar.response import Redirect
 from litestar.status_codes import HTTP_200_OK
@@ -18,8 +19,9 @@ class AuthController(Controller):
 
     @get("/login")
     async def login(self, keycloak: KeycloakClient) -> Redirect:
+        state = secrets.token_urlsafe(32)
         auth_service = AuthService(keycloak)
-        url = auth_service.get_login_url()
+        url = auth_service.get_login_url(state=state)
         return Redirect(url)
 
     @get("/callback")
@@ -32,10 +34,9 @@ class AuthController(Controller):
         if not code:
             raise InvalidRequestError("Missing authorization code")
 
-        auth_service = AuthService(keycloak)
-        tokens = await auth_service.handle_callback(code)
-
-        claims = AuthService.decode_access_token(tokens.access_token)
+        auth_service = AuthService.with_db(keycloak, db_session)
+        tokens = await keycloak.exchange_code(code)
+        claims = auth_service.decode_access_token(tokens.access_token)
         user_service = UserService(session=db_session, keycloak=keycloak)
         user, is_new = await user_service.get_or_create(
             email=claims.email,
@@ -43,47 +44,42 @@ class AuthController(Controller):
         )
         await db_session.commit()
 
-        redirect_path = "/"
-        response = Redirect(redirect_path)
-        return AuthService.set_token_cookies(response, tokens)
+        response: Response = Redirect("/")
+        return auth_service.set_token_cookies(response, tokens)
 
     @post("/refresh")
     async def refresh(
         self,
         keycloak: KeycloakClient,
-        request_cookies: dict[str, str] = Parameter(cookie=settings.cookie_refresh_name, default=""),
+        request_cookies: str = Parameter(cookie=settings.cookie_refresh_name, default=""),
     ) -> Response:
-        refresh_token = request_cookies if isinstance(request_cookies, str) else ""
-        if not refresh_token:
+        if not request_cookies:
             raise InvalidTokenError("Missing refresh token")
 
         auth_service = AuthService(keycloak)
-        tokens = await auth_service.handle_refresh(refresh_token)
+        tokens = await auth_service.handle_refresh(request_cookies)
 
         response = Response(content={"data": {"message": "Token refreshed"}}, status_code=HTTP_200_OK)
-        return AuthService.set_token_cookies(response, tokens)
+        return auth_service.set_token_cookies(response, tokens)
 
     @post("/logout")
     async def logout(
         self,
         keycloak: KeycloakClient,
-        request_cookies: dict[str, str] = Parameter(cookie=settings.cookie_refresh_name, default=""),
+        request_cookies: str = Parameter(cookie=settings.cookie_refresh_name, default=""),
     ) -> Response:
-        refresh_token = request_cookies if isinstance(request_cookies, str) else ""
         auth_service = AuthService(keycloak)
-
-        if refresh_token:
-            await auth_service.handle_logout(refresh_token)
+        if request_cookies:
+            await auth_service.handle_logout(request_cookies)
 
         response = Response(content={"data": {"message": "Logged out"}}, status_code=HTTP_200_OK)
-        return AuthService.clear_token_cookies(response)
+        return auth_service.clear_token_cookies(response)
 
     @get("/me")
     async def me(
         self,
         db_session: AsyncSession,
         keycloak: KeycloakClient,
-        x_user_id: str = Parameter(header="X-User-ID", default=""),
         x_user_email: str = Parameter(header="X-User-Email", default=""),
     ) -> UserResponse:
         if not x_user_email:
