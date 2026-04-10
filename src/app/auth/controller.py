@@ -58,7 +58,7 @@ class AuthController(Controller):
         db_session: AsyncSession,
         keycloak: KeycloakClient,
         code: str = Parameter(query="code", default=""),
-        state: str = Parameter(query="state", default=""),
+        oidc_state: str = Parameter(query="state", default=""),
         state_cookie: str = Parameter(cookie=settings.cookie_state_name, default=""),
         pkce_cookie: str = Parameter(cookie=settings.cookie_pkce_name, default=""),
     ) -> Response:
@@ -67,7 +67,7 @@ class AuthController(Controller):
         if not state_cookie:
             logger.warning("CSRF state cookie missing — possible cookie-blocking browser")
             raise InvalidRequestError("State mismatch")
-        if not state or state != state_cookie:
+        if not oidc_state or oidc_state != state_cookie:
             logger.warning("CSRF state mismatch")
             raise InvalidRequestError("State mismatch")
         if not pkce_cookie:
