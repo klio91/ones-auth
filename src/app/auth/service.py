@@ -36,6 +36,7 @@ class AuthService:
         try:
             payload = jwt.decode(
                 token,
+                key="",
                 options={"verify_signature": False, "verify_aud": False},
             )
         except JWTError:
