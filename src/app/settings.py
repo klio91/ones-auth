@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     keycloak_client_id: str = "ones"
     keycloak_client_secret: str = "dummy-client-secret"
     keycloak_redirect_uri: str = "http://localhost:8000/auth/callback"
+    keycloak_idp_hint: str | None = None
 
     # Keycloak Admin API
     keycloak_admin_client_id: str = "ones-auth-admin"
@@ -31,9 +32,6 @@ class Settings(BaseSettings):
 
     # Frontend
     frontend_url: str = "http://localhost:3000"
-
-    # Keycloak IdP Hint
-    keycloak_idp_hint: str | None = None
 
     # Server
     host: str = "0.0.0.0"

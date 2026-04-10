@@ -6,6 +6,7 @@ from litestar import Controller, Response, get, post
 from litestar.params import Parameter
 from litestar.response import Redirect
 from litestar.status_codes import HTTP_200_OK
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.service import AuthService
@@ -63,7 +64,11 @@ class AuthController(Controller):
     ) -> Response:
         if not code:
             raise InvalidRequestError("Missing authorization code")
-        if not state or not state_cookie or state != state_cookie:
+        if not state_cookie:
+            logger.warning("CSRF state cookie missing — possible cookie-blocking browser")
+            raise InvalidRequestError("State mismatch")
+        if not state or state != state_cookie:
+            logger.warning("CSRF state mismatch")
             raise InvalidRequestError("State mismatch")
         if not pkce_cookie:
             raise InvalidRequestError("Missing PKCE verifier")

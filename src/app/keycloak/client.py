@@ -1,4 +1,5 @@
 import time
+from urllib.parse import urlencode
 
 import httpx
 
@@ -32,8 +33,7 @@ class KeycloakClient:
         }
         if settings.keycloak_idp_hint:
             params["kc_idp_hint"] = settings.keycloak_idp_hint
-        query = "&".join(f"{k}={v}" for k, v in params.items())
-        return f"{settings.oidc_auth_url}?{query}"
+        return f"{settings.oidc_auth_url}?{urlencode(params)}"
 
     async def exchange_code(self, code: str, code_verifier: str) -> TokenResponse:
         resp = await self._http.post(
