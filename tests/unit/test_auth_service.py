@@ -138,7 +138,7 @@ class TestExchangeAndUpsert:
             patch.object(service, "decode_access_token") as mock_decode,
             patch("app.domain.user.service.UserService") as MockUserService,
         ):
-            mock_decode.return_value = MagicMock(sub="user-sub-123", email="user@example.com")
+            mock_decode.return_value = MagicMock(sub="user-sub-123", email="user@example.com", preferred_username="User Name")
             mock_user_service = AsyncMock()
             mock_user_service.get_or_create.return_value = (mock_user, True)
             MockUserService.return_value = mock_user_service

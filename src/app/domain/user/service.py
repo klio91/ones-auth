@@ -13,9 +13,9 @@ class UserService:
         self._repo = UserRepository(session=session)
         self._keycloak = keycloak
 
-    async def get_or_create(self, email: str, keycloak_sub: str) -> tuple[User, bool]:
+    async def get_or_create(self, login_id: str, name: str | None, keycloak_sub: str) -> tuple[User, bool]:
         """Get existing user or create as active. Returns (user, is_new)."""
-        existing = await self._repo.get_one_or_none(email=email)
+        existing = await self._repo.get_one_or_none(login_id=login_id)
         if existing:
             if existing.keycloak_sub is None:
                 existing.keycloak_sub = keycloak_sub
@@ -24,7 +24,8 @@ class UserService:
 
         user = User(
             id=str(uuid.uuid4()),
-            email=email,
+            login_id=login_id,
+            name=name,
             keycloak_sub=keycloak_sub,
             status="active",
         )
@@ -38,8 +39,8 @@ class UserService:
             raise UserNotFoundError()
         return user
 
-    async def get_by_email(self, email: str) -> User:
-        user = await self._repo.get_one_or_none(email=email)
+    async def get_by_login_id(self, login_id: str) -> User:
+        user = await self._repo.get_one_or_none(login_id=login_id)
         if not user:
             raise UserNotFoundError()
         return user

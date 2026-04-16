@@ -10,11 +10,12 @@ from app.error import ForbiddenError, UserNotFoundError
 
 def _make_user(
     user_id: str = "user-id-1",
-    email: str = "test@example.com",
+    login_id: str = "test",
+    name: str | None = "Test User",
     keycloak_sub: str = "kc-sub-1",
     status: str = "active",
 ) -> User:
-    return User(id=user_id, email=email, keycloak_sub=keycloak_sub, status=status)
+    return User(id=user_id, login_id=login_id, name=name, keycloak_sub=keycloak_sub, status=status)
 
 
 class TestGetOrCreate:
@@ -30,7 +31,7 @@ class TestGetOrCreate:
         with patch("app.domain.user.service.UserRepository", return_value=repo):
             service = UserService(session=session, keycloak=keycloak)
             user, is_new = await service.get_or_create(
-                email="new@example.com", keycloak_sub="kc-sub-new"
+                login_id="newuser", name="New User", keycloak_sub="kc-sub-new"
             )
 
         assert user.status == "active"
@@ -47,7 +48,7 @@ class TestGetOrCreate:
 
         with patch("app.domain.user.service.UserRepository", return_value=repo):
             service = UserService(session=session, keycloak=keycloak)
-            await service.get_or_create(email="new@example.com", keycloak_sub="kc-sub-new")
+            await service.get_or_create(login_id="newuser", name="New User", keycloak_sub="kc-sub-new")
 
         keycloak.assign_role.assert_awaited_once_with("kc-sub-new", "ones-user")
 
@@ -63,7 +64,7 @@ class TestGetOrCreate:
         with patch("app.domain.user.service.UserRepository", return_value=repo):
             service = UserService(session=session, keycloak=keycloak)
             user, is_new = await service.get_or_create(
-                email="test@example.com", keycloak_sub="kc-sub-1"
+                login_id="test", name="Test User", keycloak_sub="kc-sub-1"
             )
 
         assert user is existing
@@ -83,7 +84,7 @@ class TestGetOrCreate:
         with patch("app.domain.user.service.UserRepository", return_value=repo):
             service = UserService(session=session, keycloak=keycloak)
             user, is_new = await service.get_or_create(
-                email="test@example.com", keycloak_sub="kc-sub-new"
+                login_id="test", name="Test User", keycloak_sub="kc-sub-new"
             )
 
         assert user.keycloak_sub == "kc-sub-new"
@@ -120,7 +121,7 @@ class TestGetById:
                 await service.get_by_id("nonexistent")
 
 
-class TestGetByEmail:
+class TestGetByLoginId:
     @pytest.mark.asyncio
     async def test_returns_user_when_found(self) -> None:
         user = _make_user()
@@ -132,7 +133,7 @@ class TestGetByEmail:
 
         with patch("app.domain.user.service.UserRepository", return_value=repo):
             service = UserService(session=session, keycloak=keycloak)
-            result = await service.get_by_email("test@example.com")
+            result = await service.get_by_login_id("test")
 
         assert result is user
 
@@ -147,13 +148,13 @@ class TestGetByEmail:
         with patch("app.domain.user.service.UserRepository", return_value=repo):
             service = UserService(session=session, keycloak=keycloak)
             with pytest.raises(UserNotFoundError):
-                await service.get_by_email("no@example.com")
+                await service.get_by_login_id("nobody")
 
 
 class TestListUsers:
     @pytest.mark.asyncio
     async def test_list_all(self) -> None:
-        users = [_make_user(), _make_user(user_id="user-id-2", email="b@example.com")]
+        users = [_make_user(), _make_user(user_id="user-id-2", login_id="b")]
         session = MagicMock()
         keycloak = AsyncMock()
 

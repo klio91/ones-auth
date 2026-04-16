@@ -47,12 +47,11 @@ class AuthService:
             logger.debug("JWT issuer mismatch: got={}, expected={}", payload.get("iss"), expected_iss)
             raise InvalidTokenError("Invalid token")
 
-        logger.debug("JWT claims decoded: sub={}, email={}", payload.get("sub", ""), payload.get("email", ""))
+        logger.debug("JWT claims decoded: sub={}, preferred_username={}", payload.get("sub", ""), payload.get("preferred_username", ""))
 
-        roles: list[str] = []
         resource_access = payload.get("resource_access", {})
         client_access = resource_access.get(settings.keycloak_client_id, {})
-        roles = client_access.get("roles", [])
+        roles: list[str] = client_access.get("roles", [])
 
         return TokenClaims(
             sub=payload.get("sub", ""),
@@ -70,11 +69,13 @@ class AuthService:
 
         tokens = await self._keycloak.exchange_code(code, code_verifier)
         claims = self.decode_access_token(tokens.access_token)
-        logger.debug("callback claims: sub={}, email={}", claims.sub, claims.email)
+        login_id = claims.email.split("@")[0]
+        logger.debug("callback claims: sub={}, login_id={}", claims.sub, login_id)
 
         user_service = UserService(session=self._session, keycloak=self._keycloak)
         user, is_new = await user_service.get_or_create(
-            email=claims.email,
+            login_id=login_id,
+            name=claims.preferred_username,
             keycloak_sub=claims.sub,
         )
         return tokens, user, is_new

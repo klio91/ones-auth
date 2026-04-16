@@ -12,7 +12,8 @@
 | 컬럼 | 타입 | 설명 |
 |------|------|------|
 | `id` | TEXT PK | UUID |
-| `email` | TEXT UNIQUE NOT NULL | 로그인 이메일 |
+| `login_id` | TEXT UNIQUE NOT NULL | 로그인 ID (email 로컬 파트) |
+| `name` | TEXT | 사용자 이름 (Keycloak preferred_username) |
 | `keycloak_sub` | TEXT UNIQUE | Keycloak user ID |
 | `status` | TEXT NOT NULL | `active` / `inactive` |
 | `joined_at` | TIMESTAMPTZ | 최초 로그인 시각 |

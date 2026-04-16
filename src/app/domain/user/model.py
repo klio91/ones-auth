@@ -10,7 +10,8 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
-    email: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    login_id: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    name: Mapped[str | None] = mapped_column(String)
     keycloak_sub: Mapped[str | None] = mapped_column(String, unique=True)
     status: Mapped[str] = mapped_column(String, nullable=False, default="active")
     joined_at: Mapped[datetime] = mapped_column(nullable=False, server_default=func.now())

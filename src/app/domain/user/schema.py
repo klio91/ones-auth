@@ -5,7 +5,8 @@ from pydantic import BaseModel
 
 class UserRead(BaseModel):
     id: str
-    email: str
+    login_id: str
+    name: str | None
     keycloak_sub: str | None
     status: str
     joined_at: datetime

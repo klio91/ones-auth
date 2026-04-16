@@ -126,7 +126,8 @@ controller/ → service/ → repository/ (Litestar SQLAlchemyAsyncRepository)
 
 CREATE TABLE users (
     id           TEXT PRIMARY KEY,
-    email        TEXT NOT NULL UNIQUE,
+    login_id     TEXT NOT NULL UNIQUE,  -- email 로컬 파트
+    name         TEXT,                  -- Keycloak preferred_username
     keycloak_sub TEXT UNIQUE,
     status       TEXT NOT NULL DEFAULT 'active',  -- active / inactive
     joined_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -264,7 +265,7 @@ Admin API 토큰은 메모리 캐싱 (만료 30초 전 자동 갱신).
 
 ```json
 // 성공
-{ "data": { "id": "...", "email": "...", "status": "active" } }
+{ "data": { "id": "...", "login_id": "...", "name": "...", "status": "active" } }
 
 // 목록
 { "data": [{ ... }], "total": 42 }

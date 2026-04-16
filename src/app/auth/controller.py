@@ -125,5 +125,6 @@ class AuthController(Controller):
         claims = auth_service.decode_access_token(access_cookie)
 
         user_service = UserService(session=db_session, keycloak=keycloak)
-        user = await user_service.get_by_email(claims.email)
+        login_id = claims.email.split("@")[0]
+        user = await user_service.get_by_login_id(login_id)
         return UserResponse(data=UserRead.model_validate(user, from_attributes=True))

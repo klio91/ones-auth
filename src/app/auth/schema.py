@@ -8,5 +8,5 @@ class LoginRedirect(BaseModel):
 class TokenClaims(BaseModel):
     sub: str
     email: str
-    preferred_username: str | None = None
-    roles: list[str] = []
+    preferred_username: str | None
+    roles: list[str]
