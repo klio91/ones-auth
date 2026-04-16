@@ -22,7 +22,8 @@ COPY migrations/ ./migrations/
 RUN chown -R app:app /app
 USER app
 
-ENV PYTHONPATH=/app/src
+ENV PYTHONPATH=/app/src \
+    UV_NO_CACHE=1
 
 # Litestar 서버 포트 (settings.py 기본값: 9000)
 EXPOSE 9000
