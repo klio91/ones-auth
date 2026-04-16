@@ -44,6 +44,7 @@ class Settings(BaseSettings):
     # Server
     host: str = "0.0.0.0"
     port: int = 9000
+    log_level: str = "DEBUG"
 
     @property
     def keycloak_base(self) -> str:
