@@ -1,10 +1,16 @@
 # ones-auth 서비스 — Keycloak OIDC 인증/인가
-FROM python:3.13-slim
+ARG MIRROR_DOCKERIO=docker-remote.bart.sec.samsung.net
+ARG PYTHON_BASE=3.13-slim
+
+FROM ${MIRROR_DOCKERIO}/python:${PYTHON_BASE} AS base
+# COPY my.crt /usr/local/share/ca-certificates/company-ca.crt
+# RUN update-ca-certificates
 
 WORKDIR /app
 
 # uv 바이너리 복사 (Bart registry)
 COPY --from=ghcr-docker-remote.bart.sec.samsung.net/ghcr.io/astral-sh/uv:0.9.9 /uv /uvx /usr/local/bin
+# ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 
 # non-root 유저 생성
 RUN groupadd --system app && useradd --system --gid app --no-create-home app
